@@ -1,0 +1,7 @@
+username,password,expected_result,test_description
+tomsmith,SuperSecretPassword!,success,Valid credentials should login successfully
+invaliduser,wrongpass,failure,Invalid username should fail
+tomsmith,wrongpass,failure,Valid username with wrong password should fail
+,SuperSecretPassword!,failure,Empty username should fail
+tomsmith,,failure,Empty password should fail
+,,failure,Both empty should fail

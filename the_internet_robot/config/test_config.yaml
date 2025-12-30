@@ -1,0 +1,120 @@
+# ===========================================
+# Robot Framework Test Configuration
+# ===========================================
+
+# Environment URLs
+environments:
+  dev: "https://dev.the-internet.herokuapp.com/"
+  staging: "https://staging.the-internet.herokuapp.com/"
+  prod: "https://the-internet.herokuapp.com/"
+
+# Browser Configurations
+browsers:
+  chrome:
+    name: "Chrome"
+    headless_args:
+      - "--headless=new"
+      - "--disable-gpu"
+      - "--no-sandbox"
+      - "--disable-dev-shm-usage"
+      - "--window-size=1920,1080"
+      - "--disable-extensions"
+      - "--disable-plugins"
+      - "--disable-background-timer-throttling"
+      - "--disable-renderer-backgrounding"
+      - "--disable-backgrounding-occluded-windows"
+    capabilities:
+      acceptInsecureCerts: true
+      
+  firefox:
+    name: "Firefox"
+    headless_args:
+      - "--headless"
+      - "--width=1920"
+      - "--height=1080"
+    capabilities:
+      acceptInsecureCerts: true
+      
+  edge:
+    name: "Edge"
+    headless_args:
+      - "--headless"
+      - "--disable-gpu"
+      - "--window-size=1920,1080"
+      - "--no-sandbox"
+    capabilities:
+      acceptInsecureCerts: true
+
+# Timeout Configurations (in seconds)
+timeouts:
+  default: 10
+  slow_operations: 30
+  page_load: 15
+  element_wait: 5
+  implicit_wait: 5
+  script_timeout: 30
+
+# Test Data (Public test site credentials)
+test_data:
+  valid_user:
+    username: "tomsmith"
+    password: "SuperSecretPassword!"
+  invalid_users:
+    - username: "invaliduser"
+      password: "wrongpass"
+    - username: ""
+      password: ""
+    - username: "tomsmith"
+      password: "wrongpass"
+  test_files:
+    small_file: "test_file.txt"
+    image_file: "test_image.png"
+    large_file: "large_test_file.pdf"
+
+# Reporting Configuration
+reporting:
+  screenshot_on_failure: true
+  screenshot_on_success: false
+  video_recording: false
+  allure_reports: true
+  html_reports: true
+  xml_reports: true
+  log_level: "INFO"
+  
+# Execution Configuration
+execution:
+  parallel_processes: 1
+  retry_failed_tests: 2
+  continue_on_failure: true
+  max_error_screenshots: 10
+  cleanup_old_results: true
+  results_retention_days: 30
+  
+# WebDriver Configuration
+webdriver:
+  auto_download: true
+  cache_valid_range: 7
+  download_timeout: 300
+  implicit_wait: 5
+  page_load_timeout: 30
+  
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file_logging: true
+  console_logging: true
+  
+# Performance Thresholds
+performance:
+  page_load_threshold: 5.0
+  element_load_threshold: 2.0
+  test_execution_threshold: 60.0
+  
+# Feature Flags
+features:
+  smart_waits: true
+  auto_retry: true
+  enhanced_logging: true
+  performance_monitoring: false
+  accessibility_testing: false

@@ -1,0 +1,180 @@
+name: Enhanced Robot Framework CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'tests/**'
+      - 'resources/**'
+      - 'libraries/**'
+      - 'config/**'
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM
+  workflow_dispatch:
+    inputs:
+      browser:
+        description: 'Browser to test'
+        required: true
+        default: 'Chrome'
+        type: choice
+        options:
+          - Chrome
+          - Firefox
+          - Edge
+      environment:
+        description: 'Environment to test'
+        required: true
+        default: 'prod'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+jobs:
+  smoke_tests:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [Chrome]
+    steps:
+      - name: Checkout Repository Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python Environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Browsers
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: 'latest'
+          install-chromedriver: true
+          install-dependencies: true
+
+      - name: Install Python Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Smoke Tests
+        run: |
+          robot --outputdir results/smoke \
+                --variable HEADLESS_MODE:True \
+                --variable BROWSER:${{ matrix.browser }} \
+                --include Smoke \
+                --listener allure_robotframework \
+                tests/ImprovedTests.robot
+        continue-on-error: true
+
+      - name: Upload Smoke Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-reports-${{ matrix.browser }}
+          path: results/smoke/
+          retention-days: 7
+
+  regression_tests:
+    name: Regression Tests
+    needs: smoke_tests
+    runs-on: ubuntu-latest
+    if: success()
+    strategy:
+      matrix:
+        browser: [Chrome, Firefox]
+        environment: [prod]
+    steps:
+      - name: Checkout Repository Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python Environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Chrome
+        if: matrix.browser == 'Chrome'
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: 'latest'
+          install-chromedriver: true
+          install-dependencies: true
+
+      - name: Install Firefox
+        if: matrix.browser == 'Firefox'
+        uses: browser-actions/setup-firefox@v2
+        with:
+          firefox-version: 'latest'
+
+      - name: Install Python Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Regression Tests
+        run: |
+          robot --outputdir results/regression-${{ matrix.browser }}-${{ matrix.environment }} \
+                --variable HEADLESS_MODE:True \
+                --variable BROWSER:${{ matrix.browser }} \
+                --variable ENVIRONMENT:${{ matrix.environment }} \
+                --include Regression \
+                --listener allure_robotframework \
+                tests/ImprovedTests.robot
+        continue-on-error: true
+
+      - name: Upload Regression Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-test-reports-${{ matrix.browser }}-${{ matrix.environment }}
+          path: results/regression-${{ matrix.browser }}-${{ matrix.environment }}/
+          retention-days: 10
+
+  full_test_suite:
+    name: Full Test Suite
+    needs: [smoke_tests, regression_tests]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    strategy:
+      matrix:
+        browser: [Chrome, Firefox, Edge]
+        environment: [prod]
+    steps:
+      - name: Checkout Repository Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python Environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Browsers
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: 'latest'
+          install-chromedriver: true
+          install-dependencies: true
+
+      - name: Install Python Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Full Test Suite
+        run: |
+          robot --outputdir results/full-${{ matrix.browser }}-${{ matrix.environment }} \
+                --variable HEADLESS_MODE:True \
+                --variable BROWSER:${{ matrix.browser }} \
+                --variable ENVIRONMENT:${{ matrix.environment }} \
+                --listener allure_robotframework \
+                tests/ImprovedTests.robot
+        continue-on-error: true
+
+      - name: Generate Allure Report
+        run: |
+          allure generate results/full-${{ matrix.browser }}-${{ matrix.environment }}/allure-results \
+                         --output results/full-${{ matrix.browser }}-${{ matrix.environment }}/allure-report
+
+      - name: Upload Full Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-test-reports-${{ matrix.browser }}-${{ matrix.environment }}
+          path: results/full-${{ matrix.browser }}-${{ matrix.environment }}/
+          retention-days: 30

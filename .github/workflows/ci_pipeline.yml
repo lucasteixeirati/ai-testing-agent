@@ -1,0 +1,288 @@
+name: 🤖 Robot Framework CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'the_internet_robot/**'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'the_internet_robot/**'
+  schedule:
+    # Daily execution at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      browser:
+        description: 'Browser to test'
+        required: true
+        default: 'Chrome'
+        type: choice
+        options:
+          - Chrome
+          - Firefox
+          - Edge
+      environment:
+        description: 'Environment to test'
+        required: true
+        default: 'prod'
+        type: choice
+        options:
+          - prod
+          - staging
+          - dev
+      test_suite:
+        description: 'Test suite to run'
+        required: true
+        default: 'ImprovedTests'
+        type: choice
+        options:
+          - ImprovedTests
+          - AllTests
+          - Smoke
+          - Regression
+
+env:
+  PYTHON_VERSION: '3.11'
+  ROBOT_REPORTS_DIR: 'robot-reports'
+  ALLURE_RESULTS_DIR: 'allure-results'
+
+jobs:
+  # ==========================================
+  # Stage 1: Smoke Tests (Fast Feedback)
+  # ==========================================
+  smoke-tests:
+    name: 🚀 Smoke Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    
+    strategy:
+      matrix:
+        browser: [Chrome]
+        
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: 🐍 Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+        
+    - name: 📦 Install Dependencies
+      run: |
+        cd the_internet_robot
+        pip install -r requirements.txt
+        
+    - name: 🌐 Setup Browser
+      uses: browser-actions/setup-chrome@latest
+      
+    - name: 🧪 Run Smoke Tests
+      run: |
+        cd the_internet_robot
+        robot --outputdir ${{ env.ROBOT_REPORTS_DIR }}/smoke \
+              --include Smoke \
+              --variable BROWSER:${{ matrix.browser }} \
+              --variable HEADLESS_MODE:True \
+              --listener allure_robotframework \
+              tests/ImprovedTests.robot
+              
+    - name: 📊 Upload Test Reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: smoke-reports-${{ matrix.browser }}
+        path: the_internet_robot/${{ env.ROBOT_REPORTS_DIR }}/smoke/
+        retention-days: 7
+
+  # ==========================================
+  # Stage 2: Regression Tests
+  # ==========================================
+  regression-tests:
+    name: 🔄 Regression Tests
+    runs-on: ubuntu-latest
+    needs: smoke-tests
+    if: success()
+    
+    strategy:
+      matrix:
+        browser: [Chrome, Firefox]
+        
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: 🐍 Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+        
+    - name: 📦 Install Dependencies
+      run: |
+        cd the_internet_robot
+        pip install -r requirements.txt
+        
+    - name: 🌐 Setup Browsers
+      run: |
+        # Chrome
+        wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+        sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-stable
+        
+        # Firefox
+        sudo apt-get install -y firefox
+        
+    - name: 🧪 Run Regression Tests
+      run: |
+        cd the_internet_robot
+        robot --outputdir ${{ env.ROBOT_REPORTS_DIR }}/regression-${{ matrix.browser }} \
+              --include Regression \
+              --variable BROWSER:${{ matrix.browser }} \
+              --variable HEADLESS_MODE:True \
+              --listener allure_robotframework \
+              tests/ImprovedTests.robot
+              
+    - name: 📊 Upload Test Reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: regression-reports-${{ matrix.browser }}
+        path: the_internet_robot/${{ env.ROBOT_REPORTS_DIR }}/regression-${{ matrix.browser }}/
+        retention-days: 14
+
+  # ==========================================
+  # Stage 3: Full Test Suite (Scheduled/Manual)
+  # ==========================================
+  full-suite:
+    name: 🎯 Full Test Suite
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    
+    strategy:
+      matrix:
+        browser: [Chrome, Firefox, Edge]
+        
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: 🐍 Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+        
+    - name: 📦 Install Dependencies
+      run: |
+        cd the_internet_robot
+        pip install -r requirements.txt
+        
+    - name: 🌐 Setup Browsers
+      run: |
+        # Chrome
+        wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+        sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-stable
+        
+        # Firefox
+        sudo apt-get install -y firefox
+        
+        # Edge
+        curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
+        sudo install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/
+        sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main" > /etc/apt/sources.list.d/microsoft-edge-dev.list'
+        sudo apt-get update
+        sudo apt-get install -y microsoft-edge-stable
+        
+    - name: 🧪 Run Full Test Suite
+      run: |
+        cd the_internet_robot
+        
+        # Determine test suite based on input or default
+        TEST_SUITE="tests/ImprovedTests.robot"
+        if [ "${{ github.event.inputs.test_suite }}" = "AllTests" ]; then
+          TEST_SUITE="tests/AllTests.robot"
+        elif [ "${{ github.event.inputs.test_suite }}" = "Smoke" ]; then
+          TEST_SUITE="tests/ImprovedTests.robot --include Smoke"
+        elif [ "${{ github.event.inputs.test_suite }}" = "Regression" ]; then
+          TEST_SUITE="tests/ImprovedTests.robot --include Regression"
+        fi
+        
+        # Use input browser or matrix browser
+        BROWSER="${{ github.event.inputs.browser || matrix.browser }}"
+        ENVIRONMENT="${{ github.event.inputs.environment || 'prod' }}"
+        
+        robot --outputdir ${{ env.ROBOT_REPORTS_DIR }}/full-${{ matrix.browser }} \
+              --variable BROWSER:${BROWSER} \
+              --variable ENVIRONMENT:${ENVIRONMENT} \
+              --variable HEADLESS_MODE:True \
+              --listener allure_robotframework \
+              ${TEST_SUITE}
+              
+    - name: 📊 Upload Test Reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: full-reports-${{ matrix.browser }}
+        path: the_internet_robot/${{ env.ROBOT_REPORTS_DIR }}/full-${{ matrix.browser }}/
+        retention-days: 30
+
+  # ==========================================
+  # Stage 4: Generate Allure Reports
+  # ==========================================
+  allure-report:
+    name: 📈 Generate Allure Report
+    runs-on: ubuntu-latest
+    needs: [smoke-tests, regression-tests]
+    if: always() && (needs.smoke-tests.result == 'success' || needs.regression-tests.result == 'success')
+    
+    steps:
+    - name: 📥 Download All Artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: artifacts/
+        
+    - name: 🔧 Setup Allure
+      uses: simple-elf/allure-report-action@master
+      with:
+        allure_results: artifacts/*/allure-results
+        allure_report: allure-report
+        gh_pages: gh-pages
+        allure_history: allure-history
+        
+    - name: 📊 Deploy Allure Report
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: allure-report
+        destination_dir: allure-report
+
+  # ==========================================
+  # Stage 5: Notification and Summary
+  # ==========================================
+  notify:
+    name: 📢 Notify Results
+    runs-on: ubuntu-latest
+    needs: [smoke-tests, regression-tests, full-suite]
+    if: always()
+    
+    steps:
+    - name: 📊 Create Summary
+      run: |
+        echo "## 🤖 Test Execution Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Smoke Tests | ${{ needs.smoke-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Regression Tests | ${{ needs.regression-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Full Suite | ${{ needs.full-suite.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📈 Reports Available" >> $GITHUB_STEP_SUMMARY
+        echo "- Robot Framework HTML Reports in Artifacts" >> $GITHUB_STEP_SUMMARY
+        echo "- Allure Dashboard: [View Report](https://your-username.github.io/ai-testing-agent/allure-report/)" >> $GITHUB_STEP_SUMMARY
