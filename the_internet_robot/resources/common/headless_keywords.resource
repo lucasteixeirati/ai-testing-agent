@@ -41,42 +41,20 @@ Open Headless Browser
     Log    Headless browser opened successfully
 
 Open Headless Chrome Browser
-    # Create Chrome options with comprehensive settings
+    # Create Chrome options
     ${chrome_options}=    Evaluate    sys.modules['selenium.webdriver'].ChromeOptions()    sys, selenium.webdriver
     
-    # Core headless arguments
-    Call Method    ${chrome_options}    add_argument    --headless=new
+    # Add essential headless arguments
+    Call Method    ${chrome_options}    add_argument    --headless
     Call Method    ${chrome_options}    add_argument    --disable-gpu
     Call Method    ${chrome_options}    add_argument    --no-sandbox
     Call Method    ${chrome_options}    add_argument    --disable-dev-shm-usage
-    
-    # Window and display settings
     Call Method    ${chrome_options}    add_argument    --window-size=1920,1080
-    Call Method    ${chrome_options}    add_argument    --disable-extensions
-    Call Method    ${chrome_options}    add_argument    --disable-plugins
-    
-    # Performance optimizations
-    Call Method    ${chrome_options}    add_argument    --disable-background-timer-throttling
-    Call Method    ${chrome_options}    add_argument    --disable-renderer-backgrounding
-    Call Method    ${chrome_options}    add_argument    --disable-backgrounding-occluded-windows
-    
-    # Security and stability - disable problematic features
-    Call Method    ${chrome_options}    add_argument    --disable-web-security
-    Call Method    ${chrome_options}    add_argument    --disable-features=TranslateUI
-    Call Method    ${chrome_options}    add_argument    --disable-ipc-flooding-protection
-    Call Method    ${chrome_options}    add_argument    --disable-background-networking
-    Call Method    ${chrome_options}    add_argument    --disable-sync
-    Call Method    ${chrome_options}    add_argument    --disable-default-apps
-    Call Method    ${chrome_options}    add_argument    --disable-component-extensions-with-background-pages
-    
-    # Disable GCM registration to avoid PHONE_REGISTRATION_ERROR
-    Call Method    ${chrome_options}    add_argument    --disable-features=VizDisplayCompositor
-    Call Method    ${chrome_options}    add_argument    --disable-background-mode
     
     # Create webdriver with options
     Create Webdriver    Chrome    chrome_options=${chrome_options}
     
-    Log    Chrome headless browser created with optimized settings
+    Log    Chrome headless browser created
 
 Open Headless Firefox Browser
     # Create Firefox options
