@@ -50,8 +50,8 @@ Open Headless Chrome Browser
     Call Method    ${chrome_options}    add_argument    --no-sandbox
     Call Method    ${chrome_options}    add_argument    --disable-dev-shm-usage
     
-    # Create webdriver with options
-    Create Webdriver    Chrome    chrome_options=${chrome_options}
+    # Create webdriver with options (using 'options' instead of 'chrome_options')
+    Create Webdriver    Chrome    options=${chrome_options}
     
     Log    Chrome headless browser created
 
@@ -62,12 +62,8 @@ Open Headless Firefox Browser
     # Add headless argument
     Call Method    ${firefox_options}    add_argument    --headless
     
-    # Set window size
-    Call Method    ${firefox_options}    add_argument    --width=1920
-    Call Method    ${firefox_options}    add_argument    --height=1080
-    
     # Create webdriver
-    Create Webdriver    Firefox    firefox_options=${firefox_options}
+    Create Webdriver    Firefox    options=${firefox_options}
     
     Log    Firefox headless browser created
 
@@ -78,10 +74,9 @@ Open Headless Edge Browser
     # Add headless arguments
     Call Method    ${edge_options}    add_argument    --headless
     Call Method    ${edge_options}    add_argument    --disable-gpu
-    Call Method    ${edge_options}    add_argument    --window-size=1920,1080
     
     # Create webdriver
-    Create Webdriver    Edge    edge_options=${edge_options}
+    Create Webdriver    Edge    options=${edge_options}
     
     Log    Edge headless browser created
 
