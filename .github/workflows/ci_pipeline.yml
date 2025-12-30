@@ -166,7 +166,8 @@ jobs:
   full-suite:
     name: 🎯 Full Test Suite
     runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    needs: regression-tests
+    if: success() || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     
     strategy:
       matrix:
