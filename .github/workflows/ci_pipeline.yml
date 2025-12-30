@@ -44,6 +44,11 @@ on:
           - Smoke
           - Regression
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 env:
   PYTHON_VERSION: '3.11'
   ROBOT_REPORTS_DIR: 'robot-reports'
@@ -249,19 +254,26 @@ jobs:
         path: artifacts/
         
     - name: 🔧 Setup Allure
-      uses: simple-elf/allure-report-action@master
-      with:
-        allure_results: artifacts/*/allure-results
-        allure_report: allure-report
-        gh_pages: gh-pages
-        allure_history: allure-history
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y openjdk-11-jdk
+        wget https://github.com/allure-framework/allure2/releases/download/2.24.0/allure-2.24.0.tgz
+        tar -zxf allure-2.24.0.tgz
+        sudo mv allure-2.24.0 /opt/allure
+        sudo ln -s /opt/allure/bin/allure /usr/bin/allure
         
-    - name: 📊 Deploy Allure Report
-      uses: peaceiris/actions-gh-pages@v3
+    - name: 📈 Generate Allure Report
+      run: |
+        mkdir -p allure-results
+        find artifacts/ -name "allure-results" -type d -exec cp -r {}/* allure-results/ \;
+        allure generate allure-results --output allure-report --clean
+        
+    - name: 📁 Upload Allure Report
+      uses: actions/upload-artifact@v4
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: allure-report
-        destination_dir: allure-report
+        name: allure-report
+        path: allure-report/
+        retention-days: 30
 
   # ==========================================
   # Stage 5: Notification and Summary
