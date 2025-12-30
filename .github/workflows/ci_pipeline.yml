@@ -91,7 +91,7 @@ jobs:
               tests/ImprovedTests.robot
               
     - name: 📊 Upload Test Reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: smoke-reports-${{ matrix.browser }}
@@ -148,7 +148,7 @@ jobs:
               tests/ImprovedTests.robot
               
     - name: 📊 Upload Test Reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: regression-reports-${{ matrix.browser }}
@@ -226,7 +226,7 @@ jobs:
               ${TEST_SUITE}
               
     - name: 📊 Upload Test Reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: full-reports-${{ matrix.browser }}
@@ -244,7 +244,7 @@ jobs:
     
     steps:
     - name: 📥 Download All Artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         path: artifacts/
         
