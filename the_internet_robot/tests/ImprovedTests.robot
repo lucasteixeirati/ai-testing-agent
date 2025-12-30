@@ -49,7 +49,7 @@ Login Test With Invalid Credentials
 
 # Enhanced JavaScript Tests
 Enhanced JavaScript Alert Test
-    [Tags]    JavaScript    Enhanced
+    [Tags]    JavaScript    Enhanced    Smoke
     Navigate To JavaScript Alerts Page
     Smart Click Element    ${JS_ALERT_BUTTON}
     Handle Alert And Verify Message    I am a JS Alert
@@ -57,7 +57,7 @@ Enhanced JavaScript Alert Test
     Element Should Contain    ${RESULT_TEXT}    You successfully clicked an alert
 
 Enhanced JavaScript Confirm Accept Test
-    [Tags]    JavaScript    Enhanced
+    [Tags]    JavaScript    Enhanced    Regression
     Navigate To JavaScript Alerts Page
     Smart Click Element    ${JS_CONFIRM_BUTTON}
     Handle Confirm And Accept
@@ -66,14 +66,14 @@ Enhanced JavaScript Confirm Accept Test
 
 # Multi-Browser Navigation Tests
 Enhanced Navigation Test AB Testing
-    [Tags]    Navigation    Enhanced
+    [Tags]    Navigation    Enhanced    Smoke
     Navigate To Home Page
     Smart Click Element    ${AB_TESTING_LINK}
     Smart Wait For Element Visible    css:h3
     Location Should Contain    /abtest
 
 Enhanced Navigation Test Checkboxes
-    [Tags]    Navigation    Enhanced
+    [Tags]    Navigation    Enhanced    Regression
     Navigate To Home Page
     Smart Click Element    ${CHECKBOXES_LINK}
     Smart Wait For Element Visible    css:form
@@ -81,7 +81,7 @@ Enhanced Navigation Test Checkboxes
 
 # Enhanced Form Tests
 Enhanced Checkbox Test First
-    [Tags]    Forms    Enhanced
+    [Tags]    Forms    Enhanced    Smoke
     Go To    ${BASE_URL}checkboxes
     ${checkbox1}=    Set Variable    css:form input[type='checkbox']:nth-of-type(1)
     Smart Wait For Element Visible    ${checkbox1}
@@ -91,7 +91,7 @@ Enhanced Checkbox Test First
     Checkbox Should Not Be Selected    ${checkbox1}
 
 Enhanced Checkbox Test Second
-    [Tags]    Forms    Enhanced
+    [Tags]    Forms    Enhanced    Regression
     Go To    ${BASE_URL}checkboxes
     ${checkbox2}=    Set Variable    css:form input[type='checkbox']:nth-of-type(2)
     Smart Wait For Element Visible    ${checkbox2}
@@ -102,7 +102,7 @@ Enhanced Checkbox Test Second
 
 # Enhanced Dropdown Tests
 Enhanced Dropdown Test Option 1
-    [Tags]    Forms    Enhanced
+    [Tags]    Forms    Enhanced    Smoke
     Go To    ${BASE_URL}dropdown
     ${dropdown}=    Set Variable    id:dropdown
     Smart Wait For Element Visible    ${dropdown}
@@ -110,7 +110,7 @@ Enhanced Dropdown Test Option 1
     List Selection Should Be    ${dropdown}    Option 1
 
 Enhanced Dropdown Test Option 2
-    [Tags]    Forms    Enhanced
+    [Tags]    Forms    Enhanced    Regression
     Go To    ${BASE_URL}dropdown
     ${dropdown}=    Set Variable    id:dropdown
     Smart Wait For Element Visible    ${dropdown}
@@ -119,7 +119,7 @@ Enhanced Dropdown Test Option 2
 
 # Enhanced Hover Tests
 Enhanced Hover Test Figure 1
-    [Tags]    Interaction    Enhanced
+    [Tags]    Interaction    Enhanced    Regression
     Go To    ${BASE_URL}hovers
     ${figure1}=    Set Variable    css:.figure:nth-of-type(1)
     ${caption1}=    Set Variable    css:.figure:nth-of-type(1) .figcaption
@@ -128,7 +128,7 @@ Enhanced Hover Test Figure 1
     Element Should Contain    ${caption1}    name: user1
 
 Enhanced Hover Test Figure 2
-    [Tags]    Interaction    Enhanced
+    [Tags]    Interaction    Enhanced    Regression
     Go To    ${BASE_URL}hovers
     ${figure2}=    Set Variable    css:.figure:nth-of-type(2)
     ${caption2}=    Set Variable    css:.figure:nth-of-type(2) .figcaption
@@ -138,14 +138,14 @@ Enhanced Hover Test Figure 2
 
 # Enhanced Input Tests
 Enhanced Input Number Test
-    [Tags]    Forms    Enhanced
+    [Tags]    Forms    Enhanced    Regression
     Go To    ${BASE_URL}inputs
     ${number_input}=    Set Variable    css:input[type='number']
     Smart Input Text    ${number_input}    123
     Textfield Value Should Be    ${number_input}    123
 
 Enhanced Input Clear Test
-    [Tags]    Forms    Enhanced
+    [Tags]    Forms    Enhanced    Regression
     Go To    ${BASE_URL}inputs
     ${number_input}=    Set Variable    css:input[type='number']
     Smart Input Text    ${number_input}    456
@@ -154,7 +154,7 @@ Enhanced Input Clear Test
 
 # Enhanced Key Press Tests
 Enhanced Key Press Space Test
-    [Tags]    Interaction    Enhanced
+    [Tags]    Interaction    Enhanced    Regression
     Go To    ${BASE_URL}key_presses
     ${input_field}=    Set Variable    id:target
     ${result}=    Set Variable    id:result
