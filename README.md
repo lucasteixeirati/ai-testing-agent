@@ -339,3 +339,6 @@ Smart Input Text    id:username    ${username}
 - **SeleniumLibrary**: [Keywords Reference](https://robotframework.org/SeleniumLibrary/)
 - **Allure Reports**: [Guia Completo](https://docs.qameta.io/allure/)
 - **CHANGELOG.md**: Histórico detalhado de versões
+
+## 🤝 Autor
+- Lucas Teixeira System Quality Assurance Especialist
